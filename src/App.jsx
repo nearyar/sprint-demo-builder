@@ -439,7 +439,7 @@ useEffect(() => {
   >
     Audience
   </label>
-  <div style={{ display: "flex", gap: 8 }}>
+  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
     {TONE_OPTIONS.map((opt) => (
       <button
         key={opt.value}
