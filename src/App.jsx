@@ -480,10 +480,10 @@ useEffect(() => {
               fontWeight: 500,
               cursor: canGenerate && !loading ? "pointer" : "not-allowed",
               opacity: canGenerate && !loading ? 1 : 0.45,
-              background: "var(--color-background-secondary)",
+              background: canGenerate && !loading ? "#2563eb" : "var(--color-background-secondary)",
               border: "0.5px solid var(--color-border-secondary)",
               borderRadius: "var(--border-radius-md)",
-              color: "var(--color-text-primary)",
+              color: canGenerate && !loading ? "#ffffff" : "var(--color-text-primary)",
               transition: "opacity 0.2s",
             }}
           >
