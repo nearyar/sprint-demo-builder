@@ -61,16 +61,18 @@ async function callClaude(prompt, screenshots) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 1000,
+      max_tokens: 2048,
       messages: [{ role: "user", content }],
     }),
   });
   if (!response.ok) throw new Error(`API error: ${response.status}`);
   const data = await response.json();
   const text = data.content?.find((b) => b.type === "text")?.text || "";
-  const clean = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+const clean = text.replace(/```json|```/g, "").trim();
+if (data.stop_reason === "max_tokens") {
+  throw new Error("Response was cut off — try shortening your inputs or reducing the number of screenshots.");
 }
+return JSON.parse(clean);
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
