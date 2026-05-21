@@ -37,13 +37,16 @@ Generate a structured demo guide. Respond ONLY with valid JSON — no preamble, 
 }`;
 }
 
-async function callClaude(prompt, screenshot) {
-  const content = screenshot
-    ? [
-        { type: "image", source: { type: "base64", media_type: screenshot.mediaType, data: screenshot.base64 } },
-        { type: "text", text: prompt },
-      ]
-    : prompt;
+async function callClaude(prompt, screenshots) {
+  const imageBlocks = (screenshots || []).map((s) => ({
+    type: "image",
+    source: { type: "base64", media_type: s.mediaType, data: s.base64 },
+  }));
+
+  const content =
+    imageBlocks.length > 0
+      ? [...imageBlocks, { type: "text", text: prompt }]
+      : prompt;
 
   const response = await fetch("/api/generate", {
     method: "POST",
@@ -162,7 +165,7 @@ export default function SprintDemoBuilder() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [screenshot, setScreenshot] = useState(null);
+  const [screenshots, setScreenshots] = useState([]);
 
   const canGenerate = title.trim() && criteria.trim();
 
@@ -172,7 +175,7 @@ export default function SprintDemoBuilder() {
     setResult(null);
     try {
       const prompt = buildPrompt({ title, criteria, notes, tone });
-      const data = await callClaude(prompt, screenshot);
+      const data = await callClaude(prompt, screenshots);
       setResult(data);
     } catch (e) {
       setError(e.message || "Something went wrong");
@@ -184,7 +187,7 @@ export default function SprintDemoBuilder() {
   const reset = () => {
   setResult(null);
   setError(null);
-  setScreenshot(null); // add this line
+  setScreenshots([]);
 };
 
   return (
@@ -294,14 +297,14 @@ export default function SprintDemoBuilder() {
             />
           </div>
 
-          {/* Screenshot */}
+          {/* Screenshots */}
 <div style={{ marginBottom: 16 }}>
   <label style={{
     display: "block", fontSize: 11, fontWeight: 500,
     color: "var(--color-text-secondary)", fontFamily: "var(--font-mono)",
     textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6,
   }}>
-    Screenshot
+    Screenshots
     <span style={{ fontWeight: 400, textTransform: "none", marginLeft: 6, letterSpacing: 0 }}>
       — optional
     </span>
@@ -309,27 +312,49 @@ export default function SprintDemoBuilder() {
   <input
     type="file"
     accept="image/*"
+    multiple
     onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result.split(",")[1];
-        setScreenshot({ base64, mediaType: file.type, preview: reader.result });
-      };
-      reader.readAsDataURL(file);
+      const files = Array.from(e.target.files || []);
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(",")[1];
+          setScreenshots((prev) => [
+            ...prev,
+            { base64, mediaType: file.type, preview: reader.result, name: file.name },
+          ]);
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = "";
     }}
     style={{ width: "100%", boxSizing: "border-box" }}
   />
-  {screenshot && (
-    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
-      <img src={screenshot.preview} alt="screenshot preview" style={{ height: 48, borderRadius: 4, border: "0.5px solid var(--color-border-tertiary)" }} />
-      <button onClick={() => setScreenshot(null)} style={{
-        fontSize: 11, background: "none", border: "none",
-        color: "var(--color-text-tertiary)", cursor: "pointer",
-      }}>
-        remove
-      </button>
+  {screenshots.length > 0 && (
+    <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {screenshots.map((s, i) => (
+        <div key={i} style={{ position: "relative", display: "inline-flex" }}>
+          <img
+            src={s.preview}
+            alt={s.name}
+            style={{ height: 48, borderRadius: 4, border: "0.5px solid var(--color-border-tertiary)" }}
+          />
+          <button
+            onClick={() => setScreenshots((prev) => prev.filter((_, idx) => idx !== i))}
+            style={{
+              position: "absolute", top: -6, right: -6,
+              width: 16, height: 16, borderRadius: "50%",
+              background: "var(--color-background-secondary)",
+              border: "0.5px solid var(--color-border-tertiary)",
+              fontSize: 10, lineHeight: "16px", textAlign: "center",
+              cursor: "pointer", color: "var(--color-text-secondary)",
+              padding: 0,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      ))}
     </div>
   )}
 </div>
