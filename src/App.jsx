@@ -73,7 +73,7 @@ if (data.stop_reason === "max_tokens") {
   throw new Error("Response was cut off — try shortening your inputs or reducing the number of screenshots.");
 }
 return JSON.parse(clean);
-
+}
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
   const copy = () => {
