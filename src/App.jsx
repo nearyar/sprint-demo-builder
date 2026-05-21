@@ -196,7 +196,7 @@ export default function SprintDemoBuilder() {
 
       {/* Header */}
       <div style={{ marginBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)", paddingBottom: "1rem" }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, justifyContent: "center" }}>
           <span
             style={{
               fontSize: 11,
@@ -211,7 +211,7 @@ export default function SprintDemoBuilder() {
             PMA Innovation
           </span>
         </div>
-        <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--color-text-secondary)" }}>
+        <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--color-text-secondary)", textAlign: "center" }}>
           Turn a Jira ticket into a ready-to-run demo script.
         </p>
       </div>
