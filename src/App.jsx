@@ -333,7 +333,7 @@ export default function SprintDemoBuilder() {
               style={{ width: "100%", boxSizing: "border-box", resize: "vertical", fontFamily: "var(--font-sans)", fontSize: 14 }}
             />
             <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--color-text-tertiary)", lineHeight: 1.5 }}>
-              Paste verbatim quotes from interviews or surveys. Claude will show you how to weave them in for emotional resonance.
+              Paste verbatim quotes from interviews or surveys. The app will show you how to weave them in for emotional resonance.
             </p>
           </div>
 
