@@ -13,17 +13,24 @@ const SECTION_META = [
   { key: "edgeCases", icon: "⚠️", label: "Edge cases to show" },
   { key: "avoid", icon: "🚫", label: "What NOT to demo" },
   { key: "questions", icon: "💬", label: "Questions to ask audience" },
+  { key: "userVoice", icon: "🗣️", label: "Connect to user pain" },
 ];
 
-function buildPrompt({ title, criteria, notes, tone }) {
+function buildPrompt({ title, criteria, notes, tone, userQuotes }) {
   const toneLabel = TONE_OPTIONS.find((t) => t.value === tone)?.label || tone;
+  const quotesSection = userQuotes?.trim()
+    ? `- User research quotes: ${userQuotes}\n`
+    : "";
+  const userVoiceInstruction = userQuotes?.trim()
+    ? `"userVoice": "2-3 sentences weaving the user research quotes into the demo narrative — how to reference this real user pain aloud during the demo to make it land with the ${toneLabel} audience",`
+    : `"userVoice": null,`;
   return `You are a senior product manager helping a developer run a sprint review demo.
 
 Given this ticket information:
 - Ticket title: ${title}
 - Acceptance criteria: ${criteria}
 - Feature notes: ${notes}
-- Audience: ${toneLabel}
+${quotesSection}- Audience: ${toneLabel}
 
 Generate a structured demo guide. Respond ONLY with valid JSON — no preamble, no markdown fences, no explanation. Use this exact structure:
 
@@ -33,7 +40,8 @@ Generate a structured demo guide. Respond ONLY with valid JSON — no preamble, 
   "happyPath": ["step 1", "step 2", "step 3 — ordered list of what to click/show, 4-7 steps"],
   "edgeCases": ["edge case 1", "edge case 2 — 2-4 interesting edge cases worth showing if time allows"],
   "avoid": ["thing to avoid 1", "thing to avoid 2 — 2-4 things that will derail the demo or confuse the audience"],
-  "questions": ["question 1", "question 2 — 3-5 questions to ask the audience after the demo to get useful feedback"]
+  "questions": ["question 1", "question 2 — 3-5 questions to ask the audience after the demo to get useful feedback"],
+  ${userVoiceInstruction}
 }`;
 }
 
@@ -166,6 +174,7 @@ export default function SprintDemoBuilder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [screenshots, setScreenshots] = useState([]);
+  const [userQuotes, setUserQuotes] = useState("");
 
   const canGenerate = title.trim() && criteria.trim();
 
@@ -174,7 +183,7 @@ export default function SprintDemoBuilder() {
     setError(null);
     setResult(null);
     try {
-      const prompt = buildPrompt({ title, criteria, notes, tone });
+      const prompt = buildPrompt({ title, criteria, notes, tone, userQuotes });
       const data = await callClaude(prompt, screenshots);
       setResult(data);
     } catch (e) {
@@ -295,6 +304,37 @@ export default function SprintDemoBuilder() {
               rows={3}
               style={{ width: "100%", boxSizing: "border-box", resize: "vertical", fontFamily: "var(--font-sans)", fontSize: 14 }}
             />
+          </div>
+
+          {/* User Research Quotes */}
+          <div style={{ marginBottom: 16 }}>
+            <label
+              style={{
+                display: "block",
+                fontSize: 11,
+                fontWeight: 500,
+                color: "var(--color-text-secondary)",
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: 6,
+              }}
+            >
+              User research quotes
+              <span style={{ fontWeight: 400, textTransform: "none", marginLeft: 6, letterSpacing: 0 }}>
+                — optional
+              </span>
+            </label>
+            <textarea
+              value={userQuotes}
+              onChange={(e) => setUserQuotes(e.target.value)}
+              placeholder={`"I never know if a project is on track until it's too late." — Scheduler, Q2 research`}
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", resize: "vertical", fontFamily: "var(--font-sans)", fontSize: 14 }}
+            />
+            <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--color-text-tertiary)", lineHeight: 1.5 }}>
+              Paste verbatim quotes from interviews or surveys. Claude will show you how to weave them in for emotional resonance.
+            </p>
           </div>
 
           {/* Screenshots */}
