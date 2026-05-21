@@ -60,7 +60,7 @@ async function callClaude(prompt, screenshots) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 1000,
       messages: [{ role: "user", content }],
     }),
