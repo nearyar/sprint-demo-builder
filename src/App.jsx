@@ -37,14 +37,21 @@ Generate a structured demo guide. Respond ONLY with valid JSON — no preamble, 
 }`;
 }
 
-async function callClaude(prompt) {
+async function callClaude(prompt, screenshot) {
+  const content = screenshot
+    ? [
+        { type: "image", source: { type: "base64", media_type: screenshot.mediaType, data: screenshot.base64 } },
+        { type: "text", text: prompt },
+      ]
+    : prompt;
+
   const response = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "claude-sonnet-4-5",
+      model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     }),
   });
   if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -155,6 +162,7 @@ export default function SprintDemoBuilder() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [screenshot, setScreenshot] = useState(null);
 
   const canGenerate = title.trim() && criteria.trim();
 
@@ -164,7 +172,7 @@ export default function SprintDemoBuilder() {
     setResult(null);
     try {
       const prompt = buildPrompt({ title, criteria, notes, tone });
-      const data = await callClaude(prompt);
+      const data = await callClaude(prompt, screenshot);
       setResult(data);
     } catch (e) {
       setError(e.message || "Something went wrong");
@@ -174,9 +182,10 @@ export default function SprintDemoBuilder() {
   };
 
   const reset = () => {
-    setResult(null);
-    setError(null);
-  };
+  setResult(null);
+  setError(null);
+  setScreenshot(null); // add this line
+};
 
   return (
     <div style={{ fontFamily: "var(--font-sans)", maxWidth: 900, margin: "0 auto", padding: "1.5rem 1rem" }}>
@@ -285,50 +294,91 @@ export default function SprintDemoBuilder() {
             />
           </div>
 
+          {/* Screenshot */}
+<div style={{ marginBottom: 16 }}>
+  <label style={{
+    display: "block", fontSize: 11, fontWeight: 500,
+    color: "var(--color-text-secondary)", fontFamily: "var(--font-mono)",
+    textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6,
+  }}>
+    Screenshot
+    <span style={{ fontWeight: 400, textTransform: "none", marginLeft: 6, letterSpacing: 0 }}>
+      — optional
+    </span>
+  </label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result.split(",")[1];
+        setScreenshot({ base64, mediaType: file.type, preview: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }}
+    style={{ width: "100%", boxSizing: "border-box" }}
+  />
+  {screenshot && (
+    <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8 }}>
+      <img src={screenshot.preview} alt="screenshot preview" style={{ height: 48, borderRadius: 4, border: "0.5px solid var(--color-border-tertiary)" }} />
+      <button onClick={() => setScreenshot(null)} style={{
+        fontSize: 11, background: "none", border: "none",
+        color: "var(--color-text-tertiary)", cursor: "pointer",
+      }}>
+        remove
+      </button>
+    </div>
+  )}
+</div>
+
           {/* Tone */}
-          <div style={{ marginBottom: 24 }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: 11,
-                fontWeight: 500,
-                color: "var(--color-text-secondary)",
-                fontFamily: "var(--font-mono)",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                marginBottom: 8,
-              }}
-            >
-              Audience
-            </label>
-            <div style={{ display: "flex", gap: 8 }}>
-              {TONE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setTone(opt.value)}
-                  style={{
-                    fontSize: 12,
-                    padding: "6px 12px",
-                    borderRadius: "var(--border-radius-md)",
-                    border: tone === opt.value
-                      ? "1.5px solid var(--color-border-primary)"
-                      : "0.5px solid var(--color-border-tertiary)",
-                    background: tone === opt.value
-                      ? "var(--color-background-secondary)"
-                      : "transparent",
-                    color: tone === opt.value
-                      ? "var(--color-text-primary)"
-                      : "var(--color-text-secondary)",
-                    cursor: "pointer",
-                    fontWeight: tone === opt.value ? 500 : 400,
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
+<div style={{ marginBottom: 24 }}>
+  <label
+    style={{
+      display: "block",
+      fontSize: 11,
+      fontWeight: 500,
+      color: "var(--color-text-secondary)",
+      fontFamily: "var(--font-mono)",
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 8,
+    }}
+  >
+    Audience
+  </label>
+  <div style={{ display: "flex", gap: 8 }}>
+    {TONE_OPTIONS.map((opt) => (
+      <button
+        key={opt.value}
+        onClick={() => setTone(opt.value)}
+        style={{
+  appearance: "none",
+  fontSize: 12,
+  padding: "6px 12px",
+  borderRadius: 6,
+  border: tone === opt.value
+    ? "1.5px solid #333"
+    : "0.5px solid #ccc",
+  background: tone === opt.value
+    ? "#f0f0f0"
+    : "transparent",
+  color: tone === opt.value
+    ? "#111"
+    : "#888",
+  cursor: "pointer",
+  fontWeight: tone === opt.value ? 500 : 400,
+  transition: "all 0.15s",
+}}
+      >
+        {opt.label}
+      </button>
+    ))}
+  </div>
+</div>
 
           {/* Generate button */}
           <button
