@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TONE_OPTIONS = [
   { value: "internal", label: "Internal team review" },
@@ -177,6 +177,14 @@ export default function SprintDemoBuilder() {
   const [error, setError] = useState(null);
   const [screenshots, setScreenshots] = useState([]);
   const [userQuotes, setUserQuotes] = useState("");
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("title")) setTitle(params.get("title"));
+  if (params.get("criteria")) setCriteria(params.get("criteria"));
+  if (params.get("notes")) setNotes(params.get("notes"));
+  if (params.get("tone")) setTone(params.get("tone"));
+}, []);
 
   const canGenerate = title.trim() && criteria.trim();
 
