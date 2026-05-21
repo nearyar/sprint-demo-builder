@@ -178,10 +178,24 @@ export default function SprintDemoBuilder() {
   const [screenshots, setScreenshots] = useState([]);
   const [userQuotes, setUserQuotes] = useState("");
 
+function cleanChecklist(text) {
+  return text
+    .split("\n")
+    .map(line => line
+      .replace(/^---.*$/, "")          // remove section headers like --- Tested on
+      .replace(/^\*\s*\[x\]\s*/i, "✅ ") // checked items
+      .replace(/^\*\s*\[\s\]\s*/i, "☐ ") // unchecked items
+      .replace(/^\*\s*/, "• ")           // plain bullet items
+      .trim()
+    )
+    .filter(Boolean)                     // remove empty lines from stripped headers
+    .join("\n");
+}
+
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   if (params.get("title")) setTitle(params.get("title"));
-  if (params.get("criteria")) setCriteria(params.get("criteria"));
+  if (params.get("criteria")) setCriteria(cleanChecklist(params.get("criteria")));
   if (params.get("notes")) setNotes(params.get("notes"));
   if (params.get("tone")) setTone(params.get("tone"));
 }, []);
