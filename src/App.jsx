@@ -3,7 +3,7 @@ import { useState } from "react";
 const TONE_OPTIONS = [
   { value: "internal", label: "Internal team review" },
   { value: "executive", label: "Executive stakeholders" },
-  { value: "client", label: "Client-facing" },
+  { value: "scheduler", label: "Scheduler-facing" },
 ];
 
 const SECTION_META = [
@@ -12,7 +12,7 @@ const SECTION_META = [
   { key: "happyPath", icon: "✅", label: "Happy path" },
   { key: "edgeCases", icon: "⚠️", label: "Edge cases to show" },
   { key: "avoid", icon: "🚫", label: "What NOT to demo" },
-  { key: "questions", icon: "💬", label: "Questions to ask stakeholders" },
+  { key: "questions", icon: "💬", label: "Questions to ask audience" },
 ];
 
 function buildPrompt({ title, criteria, notes, tone }) {
@@ -180,14 +180,11 @@ export default function SprintDemoBuilder() {
 
   return (
     <div style={{ fontFamily: "var(--font-sans)", maxWidth: 900, margin: "0 auto", padding: "1.5rem 1rem" }}>
-      <h2 className="sr-only">Sprint Review Demo Builder</h2>
+      <h2 className="sr-only">Demo Script Builder</h2>
 
       {/* Header */}
       <div style={{ marginBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)", paddingBottom: "1rem" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-          <span style={{ fontSize: 18, fontWeight: 500, color: "var(--color-text-primary)" }}>
-            Sprint Demo Builder
-          </span>
           <span
             style={{
               fontSize: 11,
